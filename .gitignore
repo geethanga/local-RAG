@@ -1,0 +1,11 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Local environment variables
+.env
+
+# Model and vector data
+/data/vectors.json
