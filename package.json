@@ -4,7 +4,7 @@
     "start": "node app.js",
     "index": "node app.js index",
     "query": "node app.js query \"$QUERY\"",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "dependencies": {
     "@xenova/transformers": "^2.6.0",
