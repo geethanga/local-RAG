@@ -10,6 +10,7 @@ This project is a fully local implementation of a Retrieval-Augmented Generation
 - Uses [Ollama](https://ollama.com/) to run local LLMs (e.g. `mistral`, `codellama`)
 - Embedding generation via `@xenova/transformers` (browser-compatible transformer models)
 - PDF support using `pdf-parse`
+- Image indexing support using `tesseract.js`
 - Fast cosine similarity search for vector retrieval
 
 ---
@@ -20,6 +21,7 @@ This project is a fully local implementation of a Retrieval-Augmented Generation
 - `@xenova/transformers` for local embedding
 - `ollama` for local LLM inference
 - `pdf-parse` for PDF parsing
+- `tesseract.js` for OCR
 - Cosine similarity-based vector search (in-memory)
 - No database or external service dependencies
 
@@ -28,7 +30,7 @@ This project is a fully local implementation of a Retrieval-Augmented Generation
 ## 📁 Folder Structure
 
 ```
-/data/              - .txt and .pdf files for custom context
+/data/              - .txt and .pdf, .png, .jpg, .jpeg files for custom context
 /embeddings/        - Embedding logic
 /store/             - Vector storage & search
 /llm/               - LLM integration (Ollama)
@@ -56,7 +58,7 @@ ollama pull mistral
 
 ## 📚 Index Your Documents
 
-1. Place `.txt` and `.pdf` files inside the `./data/` directory.
+1. Place `.txt` and `.pdf` or image files inside the `./data/` directory.
 2. Run:
 
 ```bash
