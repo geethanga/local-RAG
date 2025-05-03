@@ -11,3 +11,5 @@ package-lock.json
 /data/
 
 .DS_Store
+
+*.traineddata
