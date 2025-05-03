@@ -2,8 +2,13 @@ import fs from "fs";
 
 let vectors = []; // { embedding: [...], text: '...' }
 
+function normalizeVector(vec) {
+  const norm = Math.sqrt(vec.reduce((sum, val) => sum + val * val, 0));
+  return vec.map((val) => val / norm);
+}
+
 export function addVector(embedding, text) {
-  vectors.push({ embedding, text });
+  vectors.push({ embedding: normalizeVector(embedding), text });
 }
 
 export function saveVectors(filePath = "./data/vectors.json") {
@@ -15,9 +20,10 @@ export function loadVectors(filePath = "./data/vectors.json") {
 }
 
 export function search(queryEmbedding, topK = 3) {
+  const normalizedQuery = normalizeVector(queryEmbedding);
   const similarities = vectors.map((v) => ({
     text: v.text,
-    score: cosineSimilarity(v.embedding, queryEmbedding),
+    score: cosineSimilarity(v.embedding, normalizedQuery),
   }));
   return similarities.sort((a, b) => b.score - a.score).slice(0, topK);
 }

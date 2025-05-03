@@ -8,4 +8,6 @@ package-lock.json
 .env
 
 # Model and vector data
-/data/vectors.json
+/data/
+
+.DS_Store
