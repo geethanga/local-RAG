@@ -3,12 +3,16 @@
   "scripts": {
     "start": "node app.js",
     "index": "node app.js index",
-    "query": "node app.js query \"$QUERY\""
+    "query": "node app.js query \"$QUERY\"",
+    "test": "vitest"
   },
   "dependencies": {
     "@xenova/transformers": "^2.6.0",
     "dotenv": "^16.0.3",
     "node-fetch": "^3.3.2",
     "pdf-parse": "1.1.1"
+  },
+  "devDependencies": {
+    "vitest": "^1.3.1"
   }
 }
