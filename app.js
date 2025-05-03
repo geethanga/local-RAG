@@ -26,8 +26,7 @@ async function queryDocuments(userQuery) {
   loadVectors();
   const queryEmbedding = await getEmbedding(userQuery);
   const topChunks = search(queryEmbedding).map((result) => result.text);
-  const answer = await generateAnswer(topChunks, userQuery);
-  console.log("\n🤖 Answer:", answer);
+  await generateAnswer(topChunks, userQuery);
 }
 
 async function main() {
