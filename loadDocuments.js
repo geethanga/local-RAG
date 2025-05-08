@@ -42,45 +42,95 @@ async function loadDocuments() {
 
 export { loadDocuments };
 
-export function splitTextIntoChunks(
-  text,
-  minSize = 500,
-  maxSize = 2000,
-  overlap = 100
-) {
-  // Step 1: Normalize whitespace
-  const cleanedText = text.replace(/\s+/g, " ").trim();
+export function splitTextIntoChunks(text, maxSize = 2000, overlap = 100) {
+  if (!text || text.trim().length === 0) {
+    return [];
+  }
 
-  // Step 2: Split into sentences
-  const sentenceSplitter = /(?<=[.?!])\s+(?=[A-Z])/g;
-  const sentences = cleanedText.split(sentenceSplitter);
+  // Step 1: Split into sentences using regex
+  const sentenceRegex = /[^.!?]+[.!?]/g;
+  const matches = text.match(sentenceRegex);
 
+  // Step 2: Clean and normalize each sentence
+  const sentences = matches
+    ? matches.map((s) => s.trim()).filter((s) => s.length > 0)
+    : [text.trim()];
+
+  // For short text, return as a single chunk
+  if (text.length <= maxSize) {
+    return [text.trim()];
+  }
+
+  // Step 3: Create chunks
   const chunks = [];
   let currentChunk = "";
 
-  for (let i = 0; i < sentences.length; i++) {
-    const sentence = sentences[i];
-    const prospectiveChunk =
-      currentChunk + (currentChunk ? " " : "") + sentence;
+  const addChunk = (text) => {
+    if (!text) return;
 
-    if (prospectiveChunk.length <= maxSize) {
-      currentChunk = prospectiveChunk;
-    } else {
-      if (currentChunk.length >= minSize) {
-        chunks.push(currentChunk.trim());
-        currentChunk = sentence;
-      } else {
-        currentChunk += " " + sentence;
+    // If text is longer than maxSize, split by words
+    if (text.length > maxSize) {
+      const words = text.split(" ");
+      let tempChunk = "";
+
+      for (const word of words) {
+        const prospectiveChunk = tempChunk ? tempChunk + " " + word : word;
+
+        if (prospectiveChunk.length <= maxSize) {
+          tempChunk = prospectiveChunk;
+        } else {
+          if (tempChunk) {
+            chunks.push(tempChunk);
+            tempChunk = word;
+          } else if (word.length > maxSize) {
+            // Split long word
+            for (let i = 0; i < word.length; i += maxSize) {
+              chunks.push(word.slice(i, Math.min(i + maxSize, word.length)));
+            }
+            tempChunk = "";
+          } else {
+            tempChunk = word;
+          }
+        }
       }
+
+      if (tempChunk) {
+        chunks.push(tempChunk);
+      }
+    } else {
+      chunks.push(text);
+    }
+  };
+
+  // Process each sentence
+  for (const sentence of sentences) {
+    if (!sentence) continue;
+
+    // If adding this sentence would exceed maxSize, start a new chunk
+    if (currentChunk && (currentChunk + " " + sentence).length > maxSize) {
+      addChunk(currentChunk);
+      currentChunk = sentence;
+    } else {
+      currentChunk = currentChunk ? currentChunk + " " + sentence : sentence;
+    }
+
+    // If current chunk is already too long, split it
+    if (currentChunk.length > maxSize) {
+      addChunk(currentChunk);
+      currentChunk = "";
     }
   }
 
-  // Push the last chunk if it's not empty
-  if (currentChunk.trim().length > 0) {
-    chunks.push(currentChunk.trim());
+  // Add any remaining chunk
+  if (currentChunk) {
+    addChunk(currentChunk);
   }
 
-  // Add overlap to improve context retention
+  // Step 4: Add overlaps
+  if (chunks.length <= 1 || overlap <= 0) {
+    return chunks;
+  }
+
   const finalChunks = [];
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i];
@@ -89,9 +139,15 @@ export function splitTextIntoChunks(
     if (i < chunks.length - 1) {
       const nextChunk = chunks[i + 1];
       const overlapStart = Math.max(0, chunk.length - overlap);
-      const overlapText =
-        chunk.slice(overlapStart) + " " + nextChunk.split(" ")[0];
-      finalChunks.push(overlapText.trim());
+      const overlapEnd = Math.min(overlap, nextChunk.length);
+
+      if (overlapEnd > 0) {
+        const overlapText =
+          chunk.slice(overlapStart) + " " + nextChunk.slice(0, overlapEnd);
+        if (overlapText.length <= maxSize) {
+          finalChunks.push(overlapText);
+        }
+      }
     }
   }
 
