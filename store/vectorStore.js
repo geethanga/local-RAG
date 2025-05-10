@@ -1,6 +1,6 @@
 import fs from "fs";
 
-export let vectors = []; // { embedding: [...], text: '...' }
+export let vectors = []; // { embedding: [...], text: '...', metadata: {...} }
 
 export function resetVectors() {
   vectors = [];
@@ -17,8 +17,16 @@ export function normalizeVector(vec) {
   return vec.map((val) => val / norm);
 }
 
-export function addVector(embedding, text) {
-  vectors.push({ embedding: normalizeVector(embedding), text });
+export function addVector(embedding, text, metadata = {}) {
+  vectors.push({
+    embedding: normalizeVector(embedding),
+    text,
+    metadata: {
+      ...metadata,
+      timestamp: metadata.timestamp || new Date().toISOString(),
+      source: metadata.source || "unknown",
+    },
+  });
 }
 
 export function saveVectors(filePath = "./data/vectors.json") {
@@ -29,7 +37,7 @@ export function loadVectors(filePath = "./data/vectors.json") {
   vectors = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 }
 
-export function search(queryEmbedding, topK = 3) {
+export function search(queryEmbedding, topK = 3, metadataFilter = {}) {
   if (vectors.length === 0) return [];
 
   // Check vector dimensions
@@ -41,10 +49,22 @@ export function search(queryEmbedding, topK = 3) {
   }
 
   const normalizedQuery = normalizeVector(queryEmbedding);
-  const similarities = vectors.map((v) => ({
+
+  const filteredVectors =
+    metadataFilter && Object.keys(metadataFilter).length > 0
+      ? vectors.filter((v) =>
+          Object.entries(metadataFilter).every(
+            ([key, value]) => v.metadata[key] === value
+          )
+        )
+      : vectors;
+
+  const similarities = filteredVectors.map((v) => ({
     text: v.text,
+    metadata: v.metadata,
     score: cosineSimilarity(v.embedding, normalizedQuery),
   }));
+
   return similarities.sort((a, b) => b.score - a.score).slice(0, topK);
 }
 

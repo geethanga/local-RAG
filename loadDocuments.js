@@ -12,6 +12,12 @@ async function loadDocuments() {
   for (const file of files) {
     const ext = path.extname(file).toLowerCase();
     let fileText = "";
+    const metadata = {
+      filename: file,
+      filetype: ext.slice(1),
+      created: fs.statSync(path.join(dataFolder, file)).birthtime.toISOString(),
+      modified: fs.statSync(path.join(dataFolder, file)).mtime.toISOString(),
+    };
 
     console.log(`Loading file ${file}`);
     if (ext === ".txt") {
@@ -20,6 +26,7 @@ async function loadDocuments() {
       const buffer = fs.readFileSync(path.join(dataFolder, file));
       const pdfData = await pdf(buffer);
       fileText = pdfData.text;
+      metadata.pageCount = pdfData.numpages;
     } else if ([".jpg", ".jpeg", ".png"].includes(ext)) {
       const imagePath = path.join(dataFolder, file);
       const {
@@ -31,13 +38,20 @@ async function loadDocuments() {
     }
 
     if (fileText !== "") {
-      chunks = chunks.concat(splitTextIntoChunks(fileText));
+      const textChunks = splitTextIntoChunks(fileText);
+      chunks = chunks.concat(
+        textChunks.map((chunk) => ({
+          text: chunk,
+          metadata: {
+            ...metadata,
+            chunkIndex: chunks.length,
+          },
+        }))
+      );
     }
   }
 
-  return chunks
-    .map((chunk) => chunk.trim())
-    .filter((chunk) => chunk.length > 0);
+  return chunks;
 }
 
 export { loadDocuments };

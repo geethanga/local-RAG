@@ -12,13 +12,12 @@ async function indexDocuments() {
   const chunks = await loadDocuments();
 
   for (const chunk of chunks) {
-    if (chunk.trim().length === 0) continue; // Skip empty chunks
-    const embedding = await getEmbedding(chunk);
-    addVector(embedding, chunk.trim());
+    if (chunk.text.trim().length === 0) continue;
+    const embedding = await getEmbedding(chunk.text);
+    addVector(embedding, chunk.text, chunk.metadata);
   }
 
   saveVectors();
-
   console.log("✅ Indexing completed.");
 }
 
@@ -26,6 +25,7 @@ async function queryDocuments(userQuery) {
   loadVectors();
   const queryEmbedding = await getEmbedding(userQuery);
   const topChunks = search(queryEmbedding).map((result) => result.text);
+
   await generateAnswer(topChunks, userQuery);
 }
 

@@ -31,6 +31,8 @@ export async function generateAnswer(
       model,
       prompt,
       stream: true,
+      max_tokens: 500,
+      context_length: 32768,
     }),
   });
 
