@@ -1,19 +1,37 @@
 import fetch from "node-fetch";
 
 export async function generateAnswer(
-  contextTexts,
+  contextChunks,
   question,
   model = "mistral"
 ) {
   const startTime = performance.now();
+
+  // Format context with citations
+  const formattedContext = contextChunks
+    .map((chunk, index) => {
+      const source = chunk.metadata.filename || "Unknown source";
+      const page = chunk.metadata.pageCount
+        ? ` (Page ${chunk.metadata.chunkIndex + 1})`
+        : "";
+      return `[${index + 1}] ${chunk.text}\nSource: ${source}${page}`;
+    })
+    .join("\n\n");
+
   const prompt = `
-    Use the following context to answer the question:
+    Use the following context to answer the question. When using information from the context, cite the source using the format [1], [2], etc.
     
     Context:
-    ${contextTexts.join("\n\n")}
+    ${formattedContext}
     
     Question:
     ${question}
+    
+    Instructions:
+    1. Answer the question using the provided context
+    2. Cite your sources using the format [1], [2], etc.
+    3. If you're not sure about something, say so
+    4. Keep your answer concise and to the point
     `;
 
   console.log("\nProcessing the query ⏳");
@@ -66,7 +84,18 @@ export async function generateAnswer(
       clearInterval(loadingInterval);
       const endTime = performance.now();
       const duration = ((endTime - startTime) / 1000).toFixed(2);
-      console.log(`\n\n⏱️  Generated in ${duration} seconds`);
+
+      // Print sources used
+      console.log("\n\n📚 Sources used:");
+      contextChunks.forEach((chunk, index) => {
+        const source = chunk.metadata.filename || "Unknown source";
+        const page = chunk.metadata.pageCount
+          ? ` (Page ${chunk.metadata.chunkIndex + 1})`
+          : "";
+        console.log(`[${index + 1}] ${source}${page}`);
+      });
+
+      console.log(`\n⏱️  Generated in ${duration} seconds`);
       resolve(result);
     });
 

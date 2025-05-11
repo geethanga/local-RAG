@@ -24,9 +24,16 @@ async function indexDocuments() {
 async function queryDocuments(userQuery) {
   loadVectors();
   const queryEmbedding = await getEmbedding(userQuery);
-  const topChunks = search(queryEmbedding).map((result) => result.text);
+  const topChunks = search(queryEmbedding);
 
-  await generateAnswer(topChunks, userQuery);
+  // Pass both text and metadata to generateAnswer
+  await generateAnswer(
+    topChunks.map((result) => ({
+      text: result.text,
+      metadata: result.metadata,
+    })),
+    userQuery
+  );
 }
 
 async function main() {
