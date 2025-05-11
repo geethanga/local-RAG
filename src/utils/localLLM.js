@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 
-export async function generateAnswer(
+export async function* generateAnswer(
   contextChunks,
   question,
   model = "mistral"
@@ -36,12 +36,6 @@ export async function generateAnswer(
 
   console.log("\nProcessing the query ⏳");
 
-  let dots = 0;
-  const loadingInterval = setInterval(() => {
-    process.stdout.write("\rThinking" + ".".repeat(dots % 4) + "   ");
-    dots++;
-  }, 500);
-
   const response = await fetch("http://localhost:11434/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -58,50 +52,36 @@ export async function generateAnswer(
     throw new Error("Failed to connect to Ollama generate endpoint");
   }
 
-  return new Promise((resolve, reject) => {
-    let result = "";
+  let buffer = "";
 
-    console.log("\n🤖 Answer : ");
+  for await (const chunk of response.body) {
+    buffer += chunk.toString();
+    const lines = buffer.split("\n");
+    buffer = lines.pop(); // Keep the last incomplete line in the buffer
 
-    response.body.on("data", (chunk) => {
-      clearInterval(loadingInterval);
-      const lines = chunk.toString().split("\n").filter(Boolean);
-
-      for (const line of lines) {
+    for (const line of lines) {
+      if (line.trim()) {
         try {
           const parsed = JSON.parse(line);
           if (parsed.response) {
-            process.stdout.write(parsed.response);
-            result += parsed.response;
+            yield parsed.response;
           }
         } catch (err) {
           console.error("⚠️ Failed to parse chunk:", line);
         }
       }
-    });
+    }
+  }
 
-    response.body.on("end", () => {
-      clearInterval(loadingInterval);
-      const endTime = performance.now();
-      const duration = ((endTime - startTime) / 1000).toFixed(2);
-
-      // Print sources used
-      console.log("\n\n📚 Sources used:");
-      contextChunks.forEach((chunk, index) => {
-        const source = chunk.metadata.filename || "Unknown source";
-        const page = chunk.metadata.pageCount
-          ? ` (Page ${chunk.metadata.chunkIndex + 1})`
-          : "";
-        console.log(`[${index + 1}] ${source}${page}`);
-      });
-
-      console.log(`\n⏱️  Generated in ${duration} seconds`);
-      resolve(result);
-    });
-
-    response.body.on("error", (err) => {
-      clearInterval(loadingInterval);
-      reject(err);
-    });
-  });
+  // Process any remaining data in the buffer
+  if (buffer.trim()) {
+    try {
+      const parsed = JSON.parse(buffer);
+      if (parsed.response) {
+        yield parsed.response;
+      }
+    } catch (err) {
+      console.error("⚠️ Failed to parse final chunk:", buffer);
+    }
+  }
 }
