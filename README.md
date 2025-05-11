@@ -1,127 +1,125 @@
-# 🧠 Local RAG (Retrieval-Augmented Generation) System
+# RAG Local Node
 
-This project is a fully local implementation of a Retrieval-Augmented Generation (RAG) system. It supports `.txt` and `.pdf` document ingestion, generates embeddings using local transformer models, stores them in memory, and uses a local LLM (like [Mistral](https://ollama.com/library/mistral)) for generating grounded answers — all offline.
+A local RAG (Retrieval-Augmented Generation) system built with Node.js, using Ollama for LLM inference and local vector storage.
 
----
+## Features
 
-## 🚀 Features
+- **Local Document Processing**
 
-- 100% offline (no API keys or cloud calls), everything you do will stay in your machine with complete privacy
-- Uses [Ollama](https://ollama.com/) to run local LLMs (e.g. `mistral`, `codellama`)
-- Embedding generation via `@xenova/transformers` (browser-compatible transformer models)
-- PDF support using `pdf-parse`
-- Image indexing support using `tesseract.js`
-- Fast cosine similarity search for vector retrieval
+  - Support for TXT, PDF, and image files (JPG, PNG)
+  - Automatic text extraction from PDFs and images
+  - Smart text chunking with sentence boundary preservation
+  - Metadata extraction (filename, type, creation date, etc.)
 
----
+- **Vector Storage**
 
-## 🧰 Tech Stack
+  - Local vector storage using JSON files
+  - Cosine similarity search
+  - Metadata filtering support
+  - Automatic vector normalization
 
-- Node.js + ES Modules
-- `@xenova/transformers` for local embedding
-- `ollama` for local LLM inference
-- `pdf-parse` for PDF parsing
-- `tesseract.js` for OCR
-- Cosine similarity-based vector search (in-memory)
-- No database or external service dependencies
+- **Query Interface**
+  - Real-time streaming responses using Server-Sent Events (SSE)
+  - Source citation in answers
+  - Interactive UI with:
+    - Query input
+    - Streaming answer display
+    - Source references
+    - Debug mode toggle
+    - Clear all functionality
+    - Stop query option
 
----
+## Prerequisites
 
-## 📁 Folder Structure
+- Node.js 18+
+- Ollama (with Mistral model)
+- Tesseract OCR (for image processing)
+
+## Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/geethanga/rag-local-node.git
+   cd rag-local-node
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Create a data directory:
+
+   ```bash
+   mkdir data
+   ```
+
+4. Start Ollama (if not already running):
+   ```bash
+   ollama serve
+   ```
+
+## Usage
+
+1. Start the server:
+
+   ```bash
+   npm start
+   ```
+
+2. Open your browser to `http://localhost:3000`
+
+3. Add documents:
+
+   - Place your documents in the `data` directory
+   - Supported formats: TXT, PDF, JPG, PNG
+   - Documents are automatically processed and indexed
+
+4. Query your documents:
+   - Enter your question in the query box
+   - Watch the answer stream in real-time
+   - View source references below the answer
+   - Use debug mode to see detailed logs
+   - Clear all to reset the interface
+
+## API Endpoints
+
+- `GET /query?query=<your-query>` - Stream query results
+- `POST /query` - Regular query endpoint
+- `POST /documents` - Index documents
+- `GET /documents` - List indexed documents
+- `GET /health` - Health check
+
+## Development
+
+- `npm run dev` - Start in development mode
+- `npm test` - Run tests
+- `npm run lint` - Run linter
+
+## Project Structure
 
 ```
-/data/              - .txt and .pdf, .png, .jpg, .jpeg files for custom context
-/embeddings/        - Embedding logic
-/store/             - Vector storage & search
-/llm/               - LLM integration (Ollama)
-app.js              - CLI entry point (index/query)
+src/
+├── public/          # Static files
+├── routes/          # API routes
+├── services/        # Business logic
+├── utils/           # Utility functions
+│   ├── embedder.js  # Text embedding
+│   ├── localLLM.js  # LLM integration
+│   └── vectorStore.js # Vector storage
+└── server.js        # Main application
 ```
 
----
+## Contributing
 
-## 📦 Setup Instructions
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-```bash
-# Clone and install dependencies
-git clone https://github.com/geethangaa/rag-local-node.git
-cd rag-local-node
-npm install
+## License
 
-# Install Ollama if not already
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Pull a model (e.g., mistral)
-ollama pull mistral
-```
-
----
-
-## 📚 Index Your Documents
-
-1. Place `.txt` and `.pdf` or image files inside the `./data/` directory.
-2. Run:
-
-```bash
-npm run index
-```
-
-This will:
-
-- Extract text from your documents
-- Chunk them into ~500 character blocks
-- Generate embeddings
-- Save them into `vectors.json`
-
----
-
-## 💬 Query the Assistant
-
-Ask a question using:
-
-```bash
-npm run query "How do I reset my password?"
-```
-
-The system will:
-
-- Embed your query
-- Find the top matching document chunks
-- Feed them (with your question) into the local LLM
-- Return a grounded answer
-
----
-
-## 📌 Requirements
-
-- Node.js ≥ 18
-- ~8GB RAM minimum
-- Ollama installed with at least 1 model pulled (e.g., `mistral`)
-- Optional: [pnpm](https://pnpm.io) for faster installs
-
----
-
-## 🛠️ Ideas for Future Features
-
-- Add streaming token-based responses
-- Build a simple web UI using React or Next.js
-- Persist chat history for multi-turn conversations
-- Support `.docx`, `.md`, and HTML files
-- Support for scanned PDF files and Images
-- Add document tagging and filtering
-
----
-
-## 🤖 Example Supported Models (via Ollama)
-
-```bash
-ollama pull mistral
-ollama pull codellama
-ollama pull phi
-ollama pull llama3
-```
-
----
-
-## 📝 License
-
-MIT — build and share freely!
+MIT
