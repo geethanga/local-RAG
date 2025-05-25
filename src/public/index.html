@@ -201,7 +201,22 @@
 
           switch (data.type) {
             case "answer":
-              document.getElementById("answer").textContent += data.content;
+              // Filter out any lines that look like source information
+              const content = data.content
+                .split("\n")
+                .filter((line) => {
+                  const trimmed = line.trim();
+                  return (
+                    !trimmed.startsWith("Source:") &&
+                    !trimmed.match(/^\[\d+\]/) &&
+                    !trimmed.includes("Source:")
+                  );
+                })
+                .join("\n");
+
+              if (content.trim()) {
+                document.getElementById("answer").textContent += content;
+              }
               break;
             case "sources":
               const sourcesHtml = data.content
@@ -210,9 +225,14 @@
                             <div class="source-item">
                                 <strong>Source ${index + 1}</strong>
                                 <p>${source.text}</p>
-                                <small>${JSON.stringify(
-                                  source.metadata
-                                )}</small>
+                                <small>File: ${source.metadata.filename}</small>
+                                ${
+                                  source.metadata.pageCount
+                                    ? `<br><small>Page: ${
+                                        source.metadata.chunkIndex + 1
+                                      }</small>`
+                                    : ""
+                                }
                             </div>
                         `
                 )

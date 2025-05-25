@@ -45,12 +45,18 @@ export async function* streamQuery(query, filters = {}) {
     }
 
     // Send sources at the end
+    const sources = chunks.map((chunk) => ({
+      text: chunk.text,
+      metadata: {
+        filename: chunk.metadata.filename || "Unknown",
+        pageCount: chunk.metadata.pageCount,
+        chunkIndex: chunk.metadata.chunkIndex,
+      },
+    }));
+
     yield {
       type: "sources",
-      content: chunks.map((chunk) => ({
-        text: chunk.text,
-        metadata: chunk.metadata,
-      })),
+      content: sources,
     };
   } catch (error) {
     yield {

@@ -19,7 +19,7 @@ export async function* generateAnswer(
     .join("\n\n");
 
   const prompt = `
-    Use the following context to answer the question. When using information from the context, cite the source using the format [1], [2], etc.
+    You are a helpful assistant that answers questions based on the provided context.
     
     Context:
     ${formattedContext}
@@ -28,13 +28,21 @@ export async function* generateAnswer(
     ${question}
     
     Instructions:
-    1. Answer the question using the provided context
-    2. Cite your sources using the format [1], [2], etc.
-    3. If you're not sure about something, say so
-    4. Keep your answer concise and to the point
+    1. Answer the question using ONLY the information from the provided context
+    2. Use citation numbers [1], [2], etc. to reference your sources
+    3. DO NOT include the actual source text in your answer
+    4. DO NOT include any lines starting with "Source:" or containing source information
+    5. DO NOT list the sources at the end of your answer
+    6. Keep your answer concise and to the point
+    7. If you're not sure about something, say so
+    
+    Example of good answer:
+    "The capital of France is Paris [1]. It is known for the Eiffel Tower [2]."
+    
+    Example of bad answer:
+    "The capital of France is Paris. Source: [1] France.txt
+    It is known for the Eiffel Tower. Source: [2] landmarks.txt"
     `;
-
-  console.log("\nProcessing the query ⏳");
 
   const response = await fetch("http://localhost:11434/api/generate", {
     method: "POST",
@@ -64,6 +72,8 @@ export async function* generateAnswer(
         try {
           const parsed = JSON.parse(line);
           if (parsed.response) {
+            // Debug log the response
+            console.log("LLM Response:", parsed.response);
             yield parsed.response;
           }
         } catch (err) {
