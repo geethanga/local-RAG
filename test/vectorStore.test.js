@@ -8,13 +8,19 @@ import {
   search,
   normalizeVector,
   resetVectors,
-} from "../store/vectorStore.js";
+} from "../src/utils/vectorStore";
 
-const TEST_VECTORS_PATH = "./data/test_vectors.json";
+const TEST_VECTORS_PATH = "../src/data/test_vectors.json";
 
 describe("VectorStore", () => {
   beforeEach(() => {
     resetVectors();
+    
+    // Ensure the directory exists
+    const dir = path.dirname(TEST_VECTORS_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
     fs.writeFileSync(TEST_VECTORS_PATH, JSON.stringify([]));
   });
 

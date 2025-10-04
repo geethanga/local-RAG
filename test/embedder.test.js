@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { loadEmbedder, getEmbedding } from "../embeddings/embedder.js";
+import { loadEmbedder, getEmbedding } from "../src/utils/embedder";
 
 describe("Embedder", () => {
   beforeAll(async () => {

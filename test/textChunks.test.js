@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { splitTextIntoChunks } from "../loadDocuments.js";
+import { splitTextIntoChunks } from "../src/utils/loadDocuments";
 
 describe("splitTextIntoChunks", () => {
   it("should handle empty text", () => {
