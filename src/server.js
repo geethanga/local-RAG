@@ -70,6 +70,20 @@ server.get("/health", async () => {
   return { status: "ok" };
 });
 
+// Fallback for React Router (serve index.html for non-API routes)
+server.setNotFoundHandler((request, reply) => {
+  // Only serve index.html for non-API routes
+  if (!request.url.startsWith('/api/') && 
+      !request.url.startsWith('/query') && 
+      !request.url.startsWith('/documents') && 
+      !request.url.startsWith('/health') &&
+      !request.url.startsWith('/docs')) {
+    reply.sendFile('index.html');
+  } else {
+    reply.code(404).send({ error: 'Not found' });
+  }
+});
+
 // Start server
 try {
   await server.listen({ port: server.config.PORT, host: "0.0.0.0" });

@@ -10,6 +10,12 @@ package-lock.json
 # Model and vector data
 /data/
 
+# React build output
+src/public/assets/
+
+# Frontend dependencies
+frontend/node_modules/
+
 .DS_Store
 
 *.traineddata
